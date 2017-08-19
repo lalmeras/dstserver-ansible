@@ -1,0 +1,84 @@
+---
+dst_group_name: dstserver
+dst_group_gid: 1100
+dst_user_name: dstserver
+dst_user_uid: 1100
+
+dst_linuxgsm_url: "https://gameservermanagers.com/dl/linuxgsm.sh"
+dst_bootstrap_force: no
+dst_install_force: no
+
+dst_default_token: "PRIVATE_TOKEN"
+
+dst_cluster_params:
+  GAMEPLAY:
+    game_mode: "{{ dst_cluster.game_mode }}"
+    max_players: "{{ dst_cluster.max_players }}"
+    pause_when_empty: "{{ 'true' if dst_cluster.pause_when_empty else 'false' }}"
+    pvp: "{{ 'true' if dst_cluster.pvp else 'false' }}"
+    vote_enabled: "{{ 'true' if dst_cluster.vote_enabled else 'false' }}"
+  MISC:
+    console_enabled: "{{ 'true' if dst_cluster.console_enabled else 'false' }}"
+    max_snapshots: "{{ dst_cluster.max_snapshots }}"
+  NETWORK:
+    cluster_description: "{{ dst_cluster.description }}"
+    cluster_name: "{{ dst_cluster.name }}"
+    cluster_intention: "{{ dst_cluster.intention }}"
+    cluster_password: "{{ dst_cluster.password }}"
+
+dst_default_worldgen_mode: auto
+dst_default_world_size: large
+dst_default_cluster_name: Anonymous world
+dst_default_cluster_description: Anonymous world
+dst_default_intention: cooperative
+dst_default_game_mode: survival
+dst_default_password: ''
+dst_default_max_players: 6
+dst_default_pause_when_empty: yes
+dst_default_pvp: no
+dst_default_vote_enabled: yes
+dst_default_console_enabled: yes
+dst_default_max_snapshots: 6
+
+dst_clusters:
+  Cluster_1:
+    name: "{{ dst_default_cluster_name }}"
+    description: "{{ dst_default_cluster_description }}"
+    intention: "{{ dst_default_intention }}"
+    password: "{{ dst_default_password }}"
+    game_mode: "{{ dst_default_game_mode }}"
+    max_players: "{{ dst_default_max_players }}"
+    pause_when_empty: "{{ dst_default_pause_when_empty }}"
+    pvp: "{{ dst_default_pvp }}"
+    vote_enabled: "{{ dst_default_vote_enabled }}"
+    console_enabled: "{{ dst_default_console_enabled }}"
+    max_snapshots: "{{ dst_default_max_snapshots }}"
+    token: "{{ dst_default_token }}"
+    servers_ids:
+      - Master
+      - Slave
+
+dst_servers_ids:
+  Master:
+    shard: Master
+    instance: dstserver
+    master: yes
+    cave: no
+    port: 11000
+    authentication_port: 8768
+    master_server_port: 27018
+    worldgen_mode: "{{ dst_default_worldgen_mode }}"
+    world_size: "{{ dst_default_world_size }}"
+  Slave:
+    shard: Slave
+    instance: dstserver-2
+    master: no
+    cave: yes
+    port: 11001
+    authentication_port: 8769
+    master_server_port: 27019
+    worldgen_mode: "{{ dst_default_worldgen_mode }}"
+    world_size: "{{ dst_default_world_size }}"
+
+dst_clusters_ids:
+  - Cluster_1

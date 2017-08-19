@@ -1,0 +1,95 @@
+- name: stat dstserver
+  stat:
+    path: "/home/{{ dst_user_name }}/{{ dst_server.instance }}"
+  register: stat_instance
+
+- name: bootstrap instance
+  shell: /home/{{ dst_user_name }}/linuxgsm.sh dstserver
+  when: not stat_instance.stat.exists or dst_bootstrap_force
+
+- name: config instance
+  copy:
+    content: |
+      sharding="{{ 'true' if dst_cluster_sharding else 'false' }}"
+      master="{{ 'true' if dst_server.master else 'false' }}"
+      shard="{{ dst_server.shard }}"
+      cluster="{{ dst_cluster_id }}"
+      cave="{{ 'true' if dst_server.cave else 'false' }}"
+
+      servercfgdir="${clustercfgdir}/${shard}"
+      servercfgfullpath="${servercfgdir}/${servercfg}"
+
+    dest: /home/{{ dst_user_name }}/lgsm/config-lgsm/dstserver/{{ dst_server.instance }}.cfg
+
+- name: prepare folders
+  file:
+    state: directory
+    path: "{{ path }}"
+    mode: u=rwx,g=rx,o=rx
+  with_items:
+    - /home/{{ dst_user_name }}/.klei
+    - /home/{{ dst_user_name }}/.klei/DoNotStarveTogether
+    - /home/{{ dst_user_name }}/.klei/DoNotStarveTogether/{{ dst_cluster_id }}
+    - /home/{{ dst_user_name }}/.klei/DoNotStarveTogether/{{ dst_cluster_id }}/{{ dst_server.shard }}
+  loop_control:
+    loop_var: path
+
+- name: worldgenoverride.lua
+  copy:
+    content: return { override_enabled = true, {{ 'preset = "DST_CAVE", ' if dst_server.cave else '' }}overrides = { world_size = "{{ dst_server.world_size }}" } }
+    dest: /home/{{ dst_user_name }}/.klei/DoNotStarveTogether/{{ dst_cluster_id }}/{{ dst_server.shard }}/worldgenoverride.lua
+    mode: u=rw,g=r,o=r
+  when: dst_server.worldgen_mode == 'auto'
+
+- name: worldgenoverride.lua
+  copy:
+    content: "{{ dst_server.worldgen_template }}"
+    dest: /home/{{ dst_user_name }}/.klei/DoNotStarveTogether/{{ dst_cluster_id }}/{{ dst_server.shard }}/worldgenoverride.lua
+    mode: u=rw,g=r,o=r
+  when: dst_server.worldgen_mode == 'template'
+
+- name: stat server.ini
+  stat:
+    path: /home/{{ dst_user_name }}/.klei/DoNotStarveTogether/{{ dst_cluster_id }}/{{ dst_server.shard }}/server.ini
+  register: stat_server_ini
+
+- name: dstserver install
+  shell: /home/{{ dst_user_name }}/{{ dst_server.instance }} auto-install
+  when: not stat_server_ini.stat.exists or dst_install_force
+
+- name: dst token
+  copy:
+    content: "{{ dst_cluster.token }}"
+    dest: /home/{{ dst_user_name }}/.klei/DoNotStarveTogether/{{ dst_cluster_id }}/cluster_token.txt
+    mode: u=rw,g=,o=
+  when: dst_server.master
+
+- name: cluster.ini
+  ini_file:
+    section: "{{ config_item.section }}"
+    option: "{{ config_item.key }}"
+    value: "{{ config_item.value }}"
+    dest: /home/{{ dst_user_name }}/.klei/DoNotStarveTogether/{{ dst_cluster_id }}/cluster.ini
+    mode: u=rw,g=r,o=r
+  with_items: "{{ dst_cluster_params | ini_items }}"
+  loop_control:
+    loop_var: config_item
+  when: dst_server.master
+
+- name: server.ini
+  ini_file:
+    section: "{{ config_item.section }}"
+    option: "{{ config_item.key }}"
+    value: "{{ config_item.value }}"
+    dest: /home/{{ dst_user_name }}/.klei/DoNotStarveTogether/{{ dst_cluster_id }}/{{ dst_server.shard }}/server.ini
+    mode: u=rw,g=r,o=r
+  with_items: "{{ params | ini_items }}"
+  loop_control:
+    loop_var: config_item
+  vars:
+    params:
+      NETWORK:
+        server_port: "{{ dst_server.port }}"
+      STEAM:
+        authentication_port: "{{ dst_server.authentication_port }}"
+        master_server_port: "{{ dst_server.master_server_port }}"

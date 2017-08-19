@@ -1,0 +1,9 @@
+---
+- include: dstserver-instance.yml
+  with_items: "{{ dst_cluster.servers_ids }}"
+  loop_control:
+    loop_var: server_id
+  vars:
+    dst_server: "{{ dst_servers_ids[server_id] }}"
+  become: yes
+  become_user: "{{ dst_user_name }}"

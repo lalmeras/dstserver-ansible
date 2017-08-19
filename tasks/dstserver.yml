@@ -1,0 +1,61 @@
+---
+- name: packages
+  package:
+    name: "{{ package }}"
+  with_items:
+    - sudo
+    - mailx
+    - postfix
+    - curl
+    - wget
+    - bzip2
+    - gzip
+    - unzip
+    - python
+    - tmux
+    - glibc.i686
+    - libstdc++
+    - libstdc++.i686
+    - libcurl.i686
+    - file
+  loop_control:
+    loop_var: package
+  become: yes
+  become_user: root
+
+- name: dstserver group
+  group:
+    name: "{{ dst_group_name }}"
+    gid: "{{ dst_group_gid }}"
+    state: present
+  become: yes
+  become_user: root
+
+- name: dstserver user
+  user:
+    name: "{{ dst_user_name }}"
+    group: "{{ dst_group_name }}"
+    createhome: yes
+    uid: "{{ dst_user_uid }}"
+    shell: /bin/bash
+  become: yes
+  become_user: root
+
+- name: linuxgsm.sh
+  get_url:
+    url: "{{ dst_linuxgsm_url }}"
+    dest: /home/{{ dst_user_name }}/linuxgsm.sh
+    mode: u=rwx,g=rx,o=rx
+    owner: "{{ dst_user_name }}"
+    group: "{{ dst_group_name }}"
+  become: yes
+  become_user: "{{ dst_user_name }}"
+
+- include: dstserver-cluster.yml
+  with_items: "{{ dst_clusters_ids }}"
+  loop_control:
+    loop_var: cluster_id
+  vars:
+    dst_cluster: "{{ dst_clusters[dst_cluster_id] }}"
+    dst_cluster_id: "{{ cluster_id }}"
+    dst_cluster_sharding: "{{ dst_cluster.servers_ids | length > 1 }}"
