@@ -27,7 +27,7 @@ Here is a sample playbook that uses the role:
       dst_default_intention: cooperative
       dst_default_game_mode: survival
       dst_default_worldgen_mode: auto
-      dst_default_world_size: huge
+      dst_default_world_size: large
       dst_default_password: "USE A PRIVATE PASSWORD"
       dst_default_max_players: 12
       dst_default_pause_when_empty: yes
@@ -36,6 +36,35 @@ Here is a sample playbook that uses the role:
       dst_default_console_enabled: yes
       dst_default_max_snapshots: 6
 ```
+
+About creating a DST Token:
+https://github.com/GameServerManagers/LinuxGSM/wiki/Don%E2%80%99t-Starve-Together---Getting-your-Authentication-Token
+
+### What is done by this script
+
+It installs needed packages with distribution package manager as listed by LGSM
+documentation, create a new ``dstserver`` user then it pushes templated
+configurations and launch dstserver commands to create a two instances
+Overworld + Cave map.
+
+All files handled by this role (except installed packages from package manager)
+are located in ``dstserver`` home.
+
+Server is not started when role ends. To start your server, connect to your
+server, switch to ``dstserver`` user and home, and type:
+
+```
+./dstserver start
+./dstserver-2 start
+```
+
+First server is Overworld, Second server is Cave. You server should be
+accessible in the Don't Starve Together ``Browse Games``.
+
+You can refer to these pages for help:
+
+ * Linux Game Server Manager: https://gameservermanagers.com/lgsm/dstserver/
+ * Don't Starve Together server configuration: https://forums.kleientertainment.com/topic/64441-dedicated-server-quick-setup-guide-linux/
 
 
 Caveat
