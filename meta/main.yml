@@ -1,0 +1,11 @@
+---
+
+allow_duplicates: yes
+
+galaxy_info:
+  author: Laurent Almeras <lalmeras@gmail.com>
+  description: Handle vagrant initialization (with Virtualbox)
+  license: 3-clause BSD license.
+  min_ansible_version: 2.3
+  categories:
+    - system
